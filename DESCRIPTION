@@ -9,7 +9,7 @@ Description: This package pulls data from the NAP API, draws graphs. To use the 
   E.g
   Sys.setenv('nap_url'="http://rtssbx005.domain.dev.int:8889/")
   Sys.setenv('nap_phase_colours'="-=grey,1=red,2=blue,3=dark green")
-Depends: R (>= 3.4.4)
+Depends: R (>= 3.3.3)
 License: MIT
 Encoding: UTF-8
 LazyData: true
