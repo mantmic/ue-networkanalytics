@@ -176,7 +176,7 @@ get_device_hierarchy <- function(devices){
 get_channel_reads <- function(channels, start_time, end_time){
   #break call into 2000 channel chunks
   channel_reads <- NULL
-  batch_size <- 2000
+  batch_size <- 500
   iterations <- ceiling(length(channels) / batch_size)
   for(i in 1:iterations){
     start_idx <- ((i-1)*batch_size)+1
