@@ -58,6 +58,7 @@ get_channel_amps_plot_plotly <- function(cd, aggregate_by_phase = F){
     amps_data <- subset(amps_data,  as.numeric(format(interval_ts, '%S')) == 0 )
     amps_data <- aggregate(amps_data$amps_lct ~ amps_data$interval_ts + amps_data$phase_group, FUN = sum )
     colnames(amps_data) <- c('interval_ts', 'phase_group', 'amps_lct')
+    amps_data$amps_lct <- round(amps_data$amps_lct,2)
     return(
       plot_ly(amps_data, x = ~interval_ts, y = ~amps_lct, split = ~phase_group, type = 'scatter', mode = 'lines', color = ~phase_group, colors = phase_colours, opacity = 1, line = list ( width = 2 ), showlegend = F, hoverinfo = 'text', text = ~paste( amps_lct, 'A</br></br>', as.character(interval_ts, format = '%D %H:%M', tz = 'Australia/Melbourne'), sep = ''))
     )
@@ -154,6 +155,132 @@ get_device_waveform_plotly <- function(channel_reads,phase_groups,device_hierarc
   #no data
   if(nrow(channel_reads) == 0){
     return(plot_ly())
+  }
+  #combine and format data
+  cd <- format_channel_reads_plot(channel_reads,phase_groups,device_hierarchy)
+  #not a dataframe
+  if(is.null(nrow(cd))){
+    return(plot_ly())
+  }
+  #no data
+  if(nrow(cd) == 0){
+    return(plot_ly())
+  }
+  #get voltage plot
+  volt_plot <- get_channel_voltage_plot_plotly(cd)
+  #get amps plot
+  amps_plot <- get_channel_amps_plot_plotly(cd,aggregate_amps)
+  #there doesn't seem to be a clean way to append subplots, so the permutations here are going to be manual for now
+  if(include_imp == F & include_pf == F){
+    #Combine plots
+    dw <- subplot(volt_plot, amps_plot, nrows = 2, shareX = T, shareY = F) %>%
+      layout(
+        title = '',
+        hovermode = 'closest',
+        xaxis = list(
+          title = NULL
+        ),
+        yaxis = list (
+          title = 'Voltage'
+        ),
+        yaxis2 = list (
+          title = 'Current'
+          , autorange = T 
+        )
+      )
+  } else if (include_imp == F & include_pf == T){
+    pf_plot <- get_channel_pf_plot_plotly(cd)
+    #Combine plots
+    dw <- subplot(volt_plot, amps_plot, pf_plot, nrows = 3, shareX = T, shareY = F) %>%
+      layout(
+        title = '',
+        hovermode = 'closest',
+        xaxis = list(
+          title = NULL
+        ),
+        yaxis = list (
+          title = 'Voltage'
+        ),
+        yaxis2 = list (
+          title = 'Current'
+          , autorange = T 
+        ),
+        yaxis3 = list (
+          title = 'Power Factor'
+          , autorange = T 
+        )
+      )
+  } else if (include_imp == T & include_pf == F){
+    imp_plot <- get_channel_imp_plot_plotly(cd)
+    #Combine plots
+    dw <- subplot(volt_plot, amps_plot, imp_plot, nrows = 3, shareX = T, shareY = F) %>%
+      layout(
+        title = '',
+        hovermode = 'closest',
+        xaxis = list(
+          title = NULL
+        ),
+        yaxis = list (
+          title = 'Voltage'
+        ),
+        yaxis2 = list (
+          title = 'Current'
+          , autorange = T 
+        ),
+        yaxis3 = list (
+          title = 'Impedance'
+          , autorange = T 
+        )
+      )
+  } else {
+    pf_plot <- get_channel_pf_plot_plotly(cd)
+    imp_plot <- get_channel_imp_plot_plotly(cd)
+    #Combine plots
+    dw <- subplot(volt_plot, amps_plot, pf_plot, imp_plot, nrows = 4, shareX = T, shareY = F) %>%
+      layout(
+        title = '',
+        hovermode = 'closest',
+        xaxis = list(
+          title = NULL
+        ),
+        yaxis = list (
+          title = 'Voltage'
+        ),
+        yaxis2 = list (
+          title = 'Current'
+          , autorange = T 
+        ),
+        yaxis3 = list (
+          title = 'Power Factor'
+          , autorange = T 
+        ),
+        yaxis4 = list (
+          title = 'Impedance'
+          , autorange = T 
+        )
+      )
+  }
+  return(dw)
+}
+
+#' Function to get substation waveform plotly plot
+#' @export
+#' @param channel_reads Channel reads dataframe
+#' @param device_hierarchy Device hierarchy dataframe
+#' @param phase_groups Phase groups dataframe
+#' @return plotly object
+#' @import plotly
+get_substation_waveform_plotly <- function(channel_reads,phase_groups,device_hierarchy, aggregate_amps = T, include_imp = F, include_pf = F, filter_voltage = T){
+  #not a dataframe
+  if(is.null(nrow(channel_reads))){
+    return(plot_ly())
+  }
+  #no data
+  if(nrow(channel_reads) == 0){
+    return(plot_ly())
+  }
+  if(filter_voltage == T){
+    channel_reads <- subset(channel_reads, voltage_lvt >= 120 & voltage_lvt <= 500)
   }
   #combine and format data
   cd <- format_channel_reads_plot(channel_reads,phase_groups,device_hierarchy)

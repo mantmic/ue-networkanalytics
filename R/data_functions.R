@@ -241,6 +241,20 @@ format_channel_reads_plot <- function(channel_reads,phase_groups,device_hierarch
   return(cd)
 }
 
+#' Function to get distribution substations
+#' @export
+#' @return dataframe
+#' @import jsonlite
+#' @examples
+#' get_distribution_substation()
+get_distribution_substation <- function(){
+  api_url <- get_nap_api_url()
+  url <- paste(api_url, 'hierarchy/distributionSubstation/', sep = '')
+  response <- perform_get_request(url)
+  r <- fromJSON(content(response, 'text'))
+  return(r$data)
+}
+
 #' Function to get channels under a distribution substation
 #' @export
 #' @param distribution_substation The distribution substation name
@@ -267,11 +281,10 @@ get_distribution_substation_channels <- function(distribution_substation){
 #' get_distribution_substation_transformer('MILNE-JAMES')
 get_distribution_substation_transformer <- function(distribution_substation){
   api_url <- get_nap_api_url()
-  substation <- gsub('/', '%2F', distribution_substation)
-  substation <- gsub(' ', '%20', substation)
+  substation <- URLencode(distribution_substation)
   url <- paste(api_url, 'hierarchy/distributionSubstation/distributionTransformer/', substation,sep = '')
   response <- perform_get_request(url)
-  r <- fromJSON(content(response, 'text'))
+  r <- tryCatch(fromJSON(content(response, 'text')), error = function(e){return(list())})
   return(r$data)
 }
 
@@ -281,12 +294,30 @@ get_distribution_substation_transformer <- function(distribution_substation){
 #' @return dataframe
 #' @import jsonlite
 #' @examples
-#' get_distribution_transformer_lv_circuit('000000000004014234')
+#' get_distribution_transformer_cuit('000000000004014234')
 get_distribution_transformer_lv_circuit <- function(distribution_transformer_id){
   api_url <- get_nap_api_url()
   url <- paste(api_url, 'hierarchy/distributionTransformer/lvCircuit',sep = '')
   r_body <- list(
     'distributionTransformer'= as.list(distribution_transformer_id)
+  )
+  response <- perform_post_request(url, r_body)
+  r <- fromJSON(content(response, 'text'))
+  return(r$data)
+}
+
+#' Function to get channels under lv circuits
+#' @export
+#' @param lv_circuit
+#' @return dataframe
+#' @import jsonlite
+#' @examples
+#' get_lv_circuit_channels(c("112807948","140987703"))
+get_lv_circuit_channels <- function(lv_circuit){
+  aapi_url <- get_nap_api_url()
+  url <- paste(api_url, 'hierarchy/lvCircuit/channel',sep = '')
+  r_body <- list(
+    'lvCircuit'= as.list(lv_circuit)
   )
   response <- perform_post_request(url, r_body)
   r <- fromJSON(content(response, 'text'))
