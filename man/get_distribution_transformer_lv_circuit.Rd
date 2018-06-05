@@ -16,5 +16,5 @@ dataframe
 Function to get transformers under a distribution substation
 }
 \examples{
-get_distribution_transformer_lv_circuit('000000000004014234')
+get_distribution_transformer_cuit('000000000004014234')
 }

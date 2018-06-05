@@ -23,4 +23,5 @@ Imports:
     jsonlite,
     scales,
     plotly,
-    ggmap
+    ggmap,
+    tidyr

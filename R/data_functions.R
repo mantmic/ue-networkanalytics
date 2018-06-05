@@ -215,6 +215,7 @@ get_channel_reads <- function(channels, start_time, end_time){
 #' @param channel_reads Channel reads dataframe
 #' @param device_hierarchy Device hierarchy dataframe
 #' @param phase_groups Phase groups dataframe
+#' @import tidyr
 #' @return dataframe
 format_channel_reads_plot <- function(channel_reads,phase_groups,device_hierarchy){
   #treat impedance values
@@ -238,6 +239,8 @@ format_channel_reads_plot <- function(channel_reads,phase_groups,device_hierarch
   #format interval ts
   cd$interval_ts <- as.POSIXct(as.character(cd$interval_ts, tz = 'Australia/Melbourne'), tz = 'Australia/Melbourne')
   cd <- cd[order(cd$interval_ts),]
+  #filter out 0 voltages
+  #cd <- subset(cd, voltage_lvt > 0)
   return(cd)
 }
 
