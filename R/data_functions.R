@@ -447,14 +447,18 @@ get_event_type <- function(){
 #' @return dataframe
 #' @examples
 #' get_event_data(meter = c('00135003001e913d'), event_type = c('15565','15566','15567','15568'), start_time = as.POSIXct('2018-05-01 00:00:00', tz = 'Australia/Melbourne'), end_time = as.POSIXct('2018-05-25 23:59:00', tz = 'Australia/Melbourne'))
-get_event_data <- function(meter,event_type,start_time, end_time){
+get_event_data <- function(meter = c(),event_type = c(),start_time, end_time){
   api_url <- Sys.getenv('nap_url')
   r_body <- list(
     'startTime'=paste(as.character(start_time, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC'),'+00:00', sep = ''),
-    'endTime'=paste(as.character(end_time, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC'),'+00:00', sep = ''),
-    'meters'= as.list(meter),
-    'eventType'=as.list(event_type)
+    'endTime'=paste(as.character(end_time, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC'),'+00:00', sep = '')
   )
+  if(length(meter)>0){
+    r_body$meters <- as.list(meter)
+  }
+  if(length(event_type)>0){
+    r_body$eventType <- as.list(event_type)
+  }
   response <- perform_post_request(
     request_url = paste(api_url,'channelData/event/meterEvent', sep = ''),
     body = r_body
