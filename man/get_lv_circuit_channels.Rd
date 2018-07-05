@@ -6,6 +6,9 @@
 \usage{
 get_lv_circuit_channels(lv_circuit)
 }
+\arguments{
+\item{lv_circuit}{A vector of lv circuit gis ids}
+}
 \value{
 dataframe
 }

@@ -311,7 +311,7 @@ get_distribution_transformer_lv_circuit <- function(distribution_transformer_id)
 
 #' Function to get channels under lv circuits
 #' @export
-#' @param lv_circuit
+#' @param lv_circuit A vector of lv circuit gis ids
 #' @return dataframe
 #' @import jsonlite
 #' @examples
