@@ -4,7 +4,7 @@
 \alias{get_event_data}
 \title{Function to get event data for supplied meters for a given period of time}
 \usage{
-get_event_data(meter, event_type, start_time, end_time)
+get_event_data(meter = c(), event_type = c(), start_time, end_time)
 }
 \arguments{
 \item{meter}{A vector of nic mac ids}

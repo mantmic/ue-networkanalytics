@@ -35,9 +35,9 @@ perform_post_request <- function(request_url,body){
   while(is.null(r) & retry_count < retry_max){
     retry_count <- retry_count + 1
     #print(paste('Try',retry_count))
-    r <- tryCatch(POST(url = request_url, 
+    r <- tryCatch(POST(url = request_url,
                        config = list(add_headers("Content-Type" = "application/json")),
-                       #body = toJSON(r_body, auto_unbox = T), 
+                       #body = toJSON(r_body, auto_unbox = T),
                        body = body,
                        encode = 'json'
     ), error = function(e){return(NULL)})
@@ -50,7 +50,7 @@ perform_post_request <- function(request_url,body){
 
 #' Function to parse out device input into channels, meters, serialnums, nmis
 #' @export
-#' @param input_text A string containing channels, nic mac ids, serial numbers and nmis each on it's own line 
+#' @param input_text A string containing channels, nic mac ids, serial numbers and nmis each on it's own line
 #' @return list containing channels,meters,serial_nums,nmis
 #' @examples
 #' parse_device_string("0013500300101ce4_b\n0013500300135a31_a\n00135003001144df\n01254662\n6407275764")
@@ -188,9 +188,9 @@ get_channel_reads <- function(channels, start_time, end_time){
       'endTime'=paste(as.character(end_time, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC'),'+00:00', sep = ''),
       'channels'= as.list(this_channels)
     )
-    response <- POST(url = paste(api_url,'channelData/channelReads', sep = ''), 
+    response <- POST(url = paste(api_url,'channelData/channelReads', sep = ''),
                      config = list(add_headers("Content-Type" = "application/json")),
-                     #body = toJSON(r_body, auto_unbox = T), 
+                     #body = toJSON(r_body, auto_unbox = T),
                      body = r_body,
                      encode = 'json'
     )
@@ -223,8 +223,8 @@ format_channel_reads_plot <- function(channel_reads,phase_groups,device_hierarch
   cd[(!is.na(cd$amps_delta_lct) & abs(cd$amps_delta_lct) < 2),]$network_impedance_imp <- NA
   #merge dataframes
   if(!is.null(phase_groups)){
-    cd <- merge(cd[,c('nic_channel_id','interval_ts','voltage_lvt', 'amps_lct','network_impedance_imp','power_factor_pf')], 
-                phase_groups, 
+    cd <- merge(cd[,c('nic_channel_id','interval_ts','voltage_lvt', 'amps_lct','network_impedance_imp','power_factor_pf')],
+                phase_groups,
                 all.x = T,
                 by = 'nic_channel_id'
     )
@@ -317,7 +317,7 @@ get_distribution_transformer_lv_circuit <- function(distribution_transformer_id)
 #' @examples
 #' get_lv_circuit_channels(c("112807948","140987703"))
 get_lv_circuit_channels <- function(lv_circuit){
-  aapi_url <- get_nap_api_url()
+  api_url <- get_nap_api_url()
   url <- paste(api_url, 'hierarchy/lvCircuit/channel',sep = '')
   r_body <- list(
     'lvCircuit'= as.list(lv_circuit)
@@ -371,7 +371,7 @@ get_phase_groups <- function(channel_reads){
   #Create cross correlation matrix
   channels <- unique(cd$nic_channel_id)
   channel_matrix <- matrix(nrow = length(channels), ncol = length(channels), dimnames = list(channels, channels))
-  
+
   #create must-not-link pairs (3 phase meters)
   n_channels <- length(channels)
   if(n_channels <= 3){
@@ -394,7 +394,7 @@ get_phase_groups <- function(channel_reads){
     #Calculate clusters
     kmeans_output <- kmeans(x = dist_matrix, centers = min(n_channels - 1,3))
     kmeans_phases <- kmeans_output$cluster
-    
+
     #ckmeans(data = dist_matrix, k = min(n_channels - 1,3), mustLink = matrix(c('dummy','dummy'),nrow=1), cantLink = matrix(c('dummy','dummy'),nrow=1))
     #starts.via.svd(dist_matrix, nclass = 3, method = "kmeans")
     #Clean output,
@@ -415,7 +415,7 @@ get_phase_groups <- function(channel_reads){
 #' @return dataframe
 get_device_waveform_export <- function(channel_reads,phase_groups,device_hierarchy){
   #merge data
-  ex_cd <- merge(channel_reads[,c('nic_channel_id','interval_ts','voltage_lvt','amps_lct','power_factor_pf','network_impedance_imp')], device_hierarchy[,c('nic_channel_id','nmi_id','circuit_num_cd','address','distance_to_sub_mt')], by = 'nic_channel_id', all.x = T)
+  ex_cd <- merge(channel_reads[,c('nic_channel_id','interval_ts','voltage_lvt','amps_lct','power_factor_pf','network_impedance_imp')], device_hierarchy[,c('nic_channel_id','nmi_id','circuit_num_cd','address','distance_to_sub_mt','distribution_substation_id','meter_type_cd')], by = 'nic_channel_id', all.x = T)
   #format datetime
   if(!is.null(nrow(phase_groups))){
     ex_cd <- merge(ex_cd,phase_groups, by = 'nic_channel_id', all.x = T)
@@ -442,8 +442,8 @@ get_event_type <- function(){
 #' @export
 #' @param meter A vector of nic mac ids
 #' @param event_type A vector of event type ids
-#' @param start_time Datetime start time of period 
-#' @param end_time Datetime end time of period 
+#' @param start_time Datetime start time of period
+#' @param end_time Datetime end time of period
 #' @return dataframe
 #' @examples
 #' get_event_data(meter = c('00135003001e913d'), event_type = c('15565','15566','15567','15568'), start_time = as.POSIXct('2018-05-01 00:00:00', tz = 'Australia/Melbourne'), end_time = as.POSIXct('2018-05-25 23:59:00', tz = 'Australia/Melbourne'))
@@ -493,7 +493,7 @@ format_event_data <- function(event_data,device_hierarchy){
 
 #' Function to get meter hierachy information as requested by webservice
 #' @export
-#' @param input_string A string containing comma separated channels, nic mac ids, serial numbers and nmis 
+#' @param input_string A string containing comma separated channels, nic mac ids, serial numbers and nmis
 #' @return dataframe
 #' @examples
 #' get_meter_details_ws('01332167')

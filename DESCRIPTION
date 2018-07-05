@@ -1,7 +1,7 @@
 Package: networkanalytics
 Repository: networkanalytics
 Title: Network Analytics related functions 
-Version: 1.0.0.0
+Version: 1.0.0.1
 Authors@R: person("Michael", "Mantfeld", email = "michael.mantfeld@ue.com.au", role = c("aut", "cre"))
 Description: This package pulls data from the NAP API, draws graphs. To use the package a few environment variables need to be set up;
   nap_url - The url for the network analytics API that is to be used
