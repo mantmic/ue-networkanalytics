@@ -48,11 +48,11 @@ get_channel_voltage_plot_gg <- function(cd, filter_voltage = F){
   #get the max tick (floor the max hour)
   max_tick <- as.POSIXct(floor(as.numeric(x_max) / 3600) * 3600, origin = '1970-01-01')
   time_ticks <- seq(min_tick,max_tick,params$timeseries_tick_seconds)
-  
+
   if(filter_voltage == T){
     cd <- subset(cd, voltage_lvt >= params$filter_voltage_min)
   }
-  
+
   volt_plot <-  ggplot(cd, mapping = aes(x = interval_ts, y = voltage_lvt, color = nic_channel_id, group = nic_channel_id)) +
     geom_line(alpha = 0.8) +
     theme_minimal() +
@@ -78,14 +78,14 @@ get_channel_current_plot_gg <- function(cd, aggregate_amps = F){
   #get the max tick (floor the max hour)
   max_tick <- as.POSIXct(floor(as.numeric(x_max) / 3600) * 3600, origin = '1970-01-01')
   time_ticks <- seq(min_tick,max_tick,params$timeseries_tick_seconds)
-  
+
   if(aggregate_amps == T){
     #aggregate amps data
     amps_channel_data <- subset(cd, as.numeric(format(cd$interval_ts, '%M')) %in% ( (0:11) * 5 ) )
     amps_channel_data <- subset(amps_channel_data,  as.numeric(format(amps_channel_data$interval_ts, '%S')) == 0 )
     amps_data <- aggregate(amps_channel_data$amps_lct ~ amps_channel_data$interval_ts, FUN = sum )
     colnames(amps_data) <- c('interval_ts', 'amps_lct')
-    
+
     amps_plot <- ggplot(amps_data, mapping = aes(x = interval_ts, y = amps_lct)) +
       geom_line(alpha = 0.8) +
       theme_minimal() +
@@ -119,7 +119,7 @@ get_channel_pf_plot_gg <- function(cd){
   #get the max tick (floor the max hour)
   max_tick <- as.POSIXct(floor(as.numeric(x_max) / 3600) * 3600, origin = '1970-01-01')
   time_ticks <- seq(min_tick,max_tick,params$timeseries_tick_seconds)
-  
+
   pf_plot <-  ggplot(cd, mapping = aes(x = interval_ts, y = power_factor_pf, color = nic_channel_id, group = nic_channel_id)) +
     geom_line(alpha = 0.8) +
     theme_minimal() +
@@ -127,7 +127,7 @@ get_channel_pf_plot_gg <- function(cd){
     scale_y_continuous(limits = c(-1, 1)) +
     ylab('Power Factor') +
     params$ggplot_theme
-  
+
   return(pf_plot)
 }
 
@@ -156,7 +156,7 @@ get_channel_imp_plot_gg <- function(cd){
     scale_x_datetime(limits = c(x_min, x_max), labels = date_format("%d/%m %H:%M", tz = "Australia/Melbourne"), breaks = time_ticks, timezone = "Australia/Melbourne", minor_breaks = time_ticks) +
     ylab('Impedance') +
     params$ggplot_theme
-  
+
   return(imp_plot)
 }
 
@@ -200,7 +200,7 @@ get_meter_waveform_plot_gg <- function(channel_reads, device_hierarchy, filter_v
   #remove legend and x axis from every plot but the last one
   for(i in 1:(length(plot_objects)-1)){
     plot_objects[[i]] <- plot_objects[[i]] + theme(axis.title.x = element_blank(),
-                                                   axis.text.x = element_blank(), 
+                                                   axis.text.x = element_blank(),
                                                    axis.ticks.x = element_blank(),
                                                    #axis.title.y = element_blank(),
                                                    #legend.title = element_blank(),
@@ -234,11 +234,11 @@ get_substation_voltage_plot_gg <- function(cd, filter_voltage = T){
   #get the max tick (floor the max hour)
   max_tick <- as.POSIXct(floor(as.numeric(x_max) / 3600) * 3600, origin = '1970-01-01')
   time_ticks <- seq(min_tick,max_tick,params$timeseries_tick_seconds)
-  
+
   if(filter_voltage == T){
     cd <- subset(cd, voltage_lvt >= params$filter_voltage_min)
   }
-  
+
   volt_plot <-  ggplot(cd, mapping = aes(x = interval_ts, y = voltage_lvt, color = phase_group, group = nic_channel_id)) +
     geom_line(alpha = 0.5) +
     scale_colour_manual(values = phase_colours) +
@@ -249,7 +249,7 @@ get_substation_voltage_plot_gg <- function(cd, filter_voltage = T){
     theme (
       legend.position = 'none'
     )
-  
+
   return(volt_plot)
 }
 
@@ -275,7 +275,7 @@ get_substation_current_plot_gg <- function(cd){
   amps_channel_data <- subset(amps_channel_data,  as.numeric(format(amps_channel_data$interval_ts, '%S')) == 0 )
   amps_data <- aggregate(amps_channel_data$amps_lct ~ amps_channel_data$interval_ts + amps_channel_data$phase_group, FUN = sum )
   colnames(amps_data) <- c('interval_ts', 'phase_group', 'amps_lct')
-  
+
   amps_plot <- ggplot(amps_data, mapping = aes(x = interval_ts, y = amps_lct,color = phase_group, group = phase_group)) +
     geom_line(alpha = 0.8) +
     scale_colour_manual(values = phase_colours) +
@@ -302,7 +302,7 @@ get_substation_current_plot_gg <- function(cd){
 #' @import cowplot
 #' @import grid
 #' @import gridExtra
-get_substation_waveform_plot_gg <- function(channel_reads, device_hierarchy, phase_groups, include_amps = T){
+get_substation_waveform_plot_gg <- function(channel_reads, device_hierarchy, phase_groups, include_amps = T, filter_voltage = T){
   params <- get_channel_waveform_parameters()
   if(nrow(channel_reads)==0){
     return(ggplot())
@@ -314,7 +314,7 @@ get_substation_waveform_plot_gg <- function(channel_reads, device_hierarchy, pha
   #get all the plots
   plot_objects <- list()
   #get voltage plot
-  plot_objects$voltage_plot <- get_substation_voltage_plot_gg(cd = cd)
+  plot_objects$voltage_plot <- get_substation_voltage_plot_gg(cd = cd, filter_voltage = filter_voltage)
   #get current plot
   if(include_amps == TRUE){
     plot_objects$current_plot <- get_substation_current_plot_gg(cd = cd)
@@ -323,7 +323,7 @@ get_substation_waveform_plot_gg <- function(channel_reads, device_hierarchy, pha
   if(length(plot_objects)>1){
     for(i in 1:(length(plot_objects)-1)){
       plot_objects[[i]] <- plot_objects[[i]] + theme(axis.title.x = element_blank(),
-                                                     axis.text.x = element_blank(), 
+                                                     axis.text.x = element_blank(),
                                                      axis.ticks.x = element_blank(),
                                                      #axis.title.y = element_blank(),
                                                      #legend.title = element_blank(),
@@ -354,7 +354,7 @@ format_voltage_histogram_data <- function(histogram_data, voltage_offset = 0){
   #truncate to min and max
   try(dfg$voltage_lvt[dfg$voltage_lvt < params$min_voltage] <- params$min_voltage, silent = T)
   try(dfg$voltage_lvt[dfg$voltage_lvt > params$max_voltage] <- params$max_voltage, silent = T)
-  
+
   voltage_vector <- c()
   for(i in 1:nrow(dfg)){
     voltage_vector <- c(voltage_vector, rep(dfg$voltage_lvt[i], dfg$channel_count_z[i]))
@@ -381,19 +381,19 @@ get_voltage_histogram_plot_gg <- function( histogram_data, voltage_offset = 0, r
   params <- get_voltage_histogram_plot_parameters()
   #format voltage histogram data
   hd <- format_voltage_histogram_data(histogram_data = histogram_data, voltage_offset = voltage_offset)
-  
+
   #factorize voltages
   hd$voltage_lvt <- factor(hd$voltage_lvt, levels <- c(params$min_voltage:params$max_voltage), labels <- c(paste('<', params$min_voltage), (params$min_voltage+1):(params$max_voltage-1), paste('>', params$max_voltage)), ordered = T)
   #calculate percentiles
   percentile_calcs <- list()
   total_channels <- sum(hd$channel_count_z)
-  
+
   for(percentile in percentiles){
     #Get percentiles indexes
     percentile_idx  <- which(cumsum(hd$channel_count_z) >= ( total_channels * percentile / 100 ))[1]
     percentile_calcs[as.character(percentile)] <- as.character(hd$voltage_lvt[percentile_idx])
   }
-  
+
   #form chart subtitle
   chart_subtitle <- paste('Offset:', voltage_offset, 'V', sep = "")
   percentiles_st <- c()
@@ -404,7 +404,7 @@ get_voltage_histogram_plot_gg <- function( histogram_data, voltage_offset = 0, r
     }
   }
   chart_subtitle <- paste(chart_subtitle, paste(percentiles_st, collapse = ','), sep = '')
-  
+
   #figure out breaks (show a voltage every 10 volts)
   min_break <- ceiling(params$min_voltage / params$voltage_break) * params$voltage_break
   max_break <- floor(params$max_voltage / params$voltage_break) * params$voltage_break
@@ -418,7 +418,7 @@ get_voltage_histogram_plot_gg <- function( histogram_data, voltage_offset = 0, r
     ylab("") +
     ggtitle(label = chart_title, subtitle = chart_subtitle)
   for(i in reference_lines){
-    histogram_plot <- histogram_plot + 
+    histogram_plot <- histogram_plot +
       geom_vline(xintercept = which(hd$voltage_lvt == i), linetype = "dashed", color = 'red', size = 1, alpha = 0.5)
   }
   return(histogram_plot)
